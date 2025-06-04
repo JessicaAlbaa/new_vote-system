@@ -1,0 +1,468 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>投票主屏</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 100%;
+      /* margin: auto; */
+    }
+
+    .qrcode-container {
+      font-size: 50px;
+      text-align: center;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .qrcode-container h3 {
+      margin: 20px auto;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .active-page {
+      display: block;
+    }
+
+    button {
+      height: 80px;
+      width: 350px;
+      font-size: 30px;
+      padding: 10px 20px;
+      margin: 10px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #visualization {
+      margin-top: 30px;
+    }
+
+    .qrcode-container,
+    .chart-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    #qrcodeImg {
+      display: block;
+      margin: 0 auto;
+      height: 250px;
+    }
+
+    #statsPage .small {
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    #statsPage {
+      /* padding: 2rem; */
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #333;
+    }
+
+    .chart-box {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      color: #2c3e50;
+      font-size: 1.8rem;
+      /* margin: 1.5rem 0; */
+      border-bottom: 2px solid #3498db;
+      /* padding-bottom: 0.5rem; */
+      display: inline-block;
+    }
+
+    h4 {
+      color: #34495e;
+      font-size: 1.2rem;
+      margin: 1.5rem 0 1rem;
+    }
+
+    .small {
+      display: flex;
+      justify-content: space-between;
+      gap: 2rem;
+      /* margin: 1.5rem 0; */
+    }
+
+    .small>div {
+      flex: 1;
+      background: #f8f9fa;
+      padding: 1.2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .small p {
+      margin: 0.8rem 0;
+      font-size: 2rem;
+      color: #7f8c8d;
+    }
+
+    .small span {
+      float: right;
+      font-weight: 600;
+      color: #3498db;
+      font-size: 2.5rem;
+    }
+
+    #criteriaExtremes {
+      list-style-type: none;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+
+    #criteriaExtremes li strong {
+      width: 230px;
+    }
+
+    #criteriaExtremes li {
+      width: 460px;
+      padding: 0.4rem;
+      margin: 0 auto;
+      border-bottom: 1px solid #ecf0f1;
+      display: flex;
+      /* justify-content: space-between; */
+      font-size: 22px;
+    }
+
+    #criteriaExtremes li div {
+      width: 140px;
+    }
+
+    #criteriaExtremes li:last-child {
+      border-bottom: none;
+    }
+
+    #chart {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 300px;
+      margin: 0 auto;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .small {
+        flex-direction: column;
+      }
+
+      .chart-box {
+        padding: 1rem;
+        margin: 1rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    #statsPage button {
+      position: relative;
+      left: 500px;
+      transform: translateX(-50%);
+      margin-top: 20px;
+    }
+
+    /* 新增样式 */
+    .candidate-section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin: 30px auto;
+      max-width: 1000px;
+    }
+
+    .candidate-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .candidate-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .candidate-card h3 {
+      text-align: center;
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 8px;
+    }
+
+    .dimension-score {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    .dimension-name {
+      font-weight: bold;
+    }
+
+    .dimension-max {
+      color: #27ae60;
+    }
+
+    .dimension-min {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div id="mainPage">
+      <div class="qrcode-container">
+        <h2 style="font-size: 2.8rem;">扫码参与评分</h2>
+        <img id="qrcodeImg">
+        <button onclick="newVote()">发起新一轮评分</button>
+        <button onclick="showStats()">查看实时统计</button>
+      </div>
+    </div>
+
+    <div id="statsPage" style="display:none;">
+      <div class="chart-box">
+        <canvas id="chart"></canvas>
+        <div>
+          <h2 style="margin: 10px;">关键统计数据</h2>
+          <div class="small">
+            <p>总投票数: <span id="total">0</span></p>
+            <p>考生A: <span id="avgA">0</span></p>
+            <p>考生B: <span id="avgB">0</span></p>
+            <p>考生C: <span id="avgC">0</span></p>
+            <p>考生D: <span id="avgD">0</span></p>
+
+          </div>
+
+          <div class="stats-row">
+            <div class="stats-col">
+              <h2 style="margin: 10px;">各维度极值：</h2>
+              <ul id="criteriaExtremes" style="text-align: left;display: flex;flex-wrap: wrap;"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新增候选人维度极值区域 -->
+      <div class="candidate-section">
+        <h2 style="margin: 10px;">候选人维度极值</h2>
+        <div class="candidate-grid" id="candidateExtremes">
+          <!-- 这里将用JS动态生成4个候选人的数据展示 -->
+        </div>
+      </div>
+
+      <button onclick="location.reload()">返回</button>
+    </div>
+  </div>
+  <script>
+    // 新增页面切换功能
+    function showStats() {
+      document.getElementById('mainPage').style.display = 'none';
+      document.getElementById('statsPage').style.display = 'block';
+      // 主动请求最新数据
+      socket.emit('requestUpdate');
+    }
+
+    // 新增投票重置功能
+    async function newVote() {
+      // 重置客户端状态
+      document.getElementById('statsPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+
+      // 与服务端通信重置投票
+      const response = await fetch('/reset', { method: 'POST' });
+      if (response.ok) {
+        // 更新二维码
+        const { qr, url } = await response.json();
+        document.getElementById('qrcodeImg').src = qr;
+        console.log('新一轮投票已开启，新URL:', url);
+      }
+    }
+
+    // 初始化二维码
+    (async function initQRCode() {
+      const response = await fetch('/qrcode');
+      const { qr } = await response.json();
+      document.getElementById('qrcodeImg').src = qr;
+    })();
+  </script>
+
+  <script>
+    let chart;
+    // 更新统计展示逻辑
+    function updateChart(stats) {
+      document.getElementById('total').textContent = stats.total;
+      document.getElementById('avgA').textContent = stats.trimmedAverages.A.toFixed(1);
+      document.getElementById('avgB').textContent = stats.trimmedAverages.B.toFixed(1);
+      document.getElementById('avgC').textContent = stats.trimmedAverages.C.toFixed(1);
+      document.getElementById('avgD').textContent = stats.trimmedAverages.D.toFixed(1);
+
+      const criteriaList = document.getElementById('criteriaExtremes');
+      criteriaList.innerHTML = '';
+      stats.dimensions.forEach(d => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${d.name}: </strong><div>最高 ${d.maxCandidate} (${d.maxScore}) </div><div>最低 ${d.minCandidate} (${d.minScore})</div>`;
+        criteriaList.appendChild(li);
+      });
+
+      // 新增：更新候选人维度极值
+      updateCandidateExtremes(stats.candidateExtremes);
+
+      // 更新图表数据
+      const datasets = [
+        {
+          label: '考生A',
+          data: stats.distribution.map(bin => parseFloat(bin[0])),
+          backgroundColor: '#FF6384'
+        },
+        {
+          label: '考生B',
+          data: stats.distribution.map(bin => parseFloat(bin[1])),
+          backgroundColor: '#36A2EB'
+        },
+        {
+          label: '考生C',
+          data: stats.distribution.map(bin => parseFloat(bin[2])),
+          backgroundColor: '#FFCE56'
+        },
+        {
+          label: '考生D',
+          data: stats.distribution.map(bin => parseFloat(bin[3])),
+          backgroundColor: '#4BC0C0'
+        }
+      ];
+
+      if (!chart) {
+        const ctx = document.getElementById('chart').getContext('2d');
+        chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['<60', '60-69', '70-79', '80-89', '90+'],
+            datasets: datasets
+          },
+          options: {
+            scales: {
+              y: {
+                title: { display: true, text: '百分比 (%)' },
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function (value) { return value + '%'; }
+                }
+              },
+              x: {
+                title: { display: true, text: '分数段（分）' }
+              }
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const label = context.dataset.label || '';
+                    const value = context.parsed.y || 0;
+                    const binIndex = context.dataIndex;
+                    const binLabels = ['<60', '60-69', '70-79', '80-89', '90+'];
+
+                    // 获取实际票数
+                    const totalVotes = document.getElementById('total').textContent;
+                    const actualCount = Math.round((value / 100) * totalVotes);
+
+                    return `${label} - ${binLabels[binIndex]}: ${value.toFixed(1)}% (${actualCount}票)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      else {
+        chart.data.datasets.forEach((dataset, index) => {
+          dataset.data = stats.distribution.map(bin => bin[index]);
+        });
+        chart.update();
+      }
+    }
+
+    // 新增：更新候选人维度极值展示
+    function updateCandidateExtremes(candidateExtremes) {
+      const container = document.getElementById('candidateExtremes');
+      container.innerHTML = '';
+
+      // 维度中文名称映射
+      const dimensionNames = {
+        analysis: '综合分析能力',
+        plan: '计划统筹能力',
+        solve: '计划和解决问题能力',
+        reaction: '反应能力',
+        speak: '语言表达能力',
+        behave: '举止仪表'
+      };
+
+      // 为每个候选人创建卡片
+      ['A', 'B', 'C', 'D'].forEach(candidate => {
+        const card = document.createElement('div');
+        card.className = 'candidate-card';
+        card.innerHTML = `<h3>考生${candidate}</h3>`;
+
+        // 添加每个维度的最高分和最低分
+        Object.entries(candidateExtremes[candidate]).forEach(([dimension, scores]) => {
+          const scoreElement = document.createElement('div');
+          scoreElement.className = 'dimension-score';
+          scoreElement.innerHTML = `
+            <span class="dimension-name">${dimensionNames[dimension] || dimension}:</span>
+            <span>
+              <span class="dimension-max">最高 ${scores.max} 分</span>, 
+              <span class="dimension-min">最低 ${scores.min} 分</span>
+            </span>
+          `;
+          card.appendChild(scoreElement);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    // 添加Socket监听
+    const socket = io();
+    socket.on('update', updateChart);
+  </script>
+</body>
+
+</html>

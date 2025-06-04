@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    /* 优化后的样式 */
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+    }
+
+    .score-table th {
+      background: #2196F3;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .score-table td {
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      text-align: center;
+      background: white;
+    }
+
+    .criteria-cell {
+      width: 150px;
+      background: #f8f9fa;
+      font-weight: 500;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      font-size: larger;
+    }
+
+    .standard-cell {
+      /* background: #fffde7; */
+      text-align: left !important;
+      min-width: 150px;
+      font-size: smaller;
+      /* margin-left: 10px; */
+      margin-top: 6px;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    input:invalid {
+      border-color: #ff4444;
+      background: #ffebee;
+    }
+
+    .form-group button {
+      font-size: 16px;
+      padding: 12px 24px;
+      transition: all 0.3s;
+    }
+
+    .form-group button:hover {
+      background: #1976D2;
+    }
+  </style>
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+</head>
+
+<body>
+  <div id="votePage">
+    <h2 style="text-align:center; color: #2c3e50;">面试评分表</h2>
+    <form id="voteForm">
+      <div style="overflow-x: auto;">
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th style="min-width: 20px;">测评要素/候选人</th>
+              <th>考生A</th>
+              <th>考生B</th>
+              <th>考生C</th>
+              <th>考生D</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 综合分析能力 -->
+            <tr>
+              <td class="criteria-cell">
+                综合分析能力<br>(0-20分)<br>
+                <div class="standard-cell">
+                  <div>理解、分析、判断<br>侧重考题：一题为主</div>
+                  <div>好：90%→18分</div>
+                  <div>中：70-80%→14-16分</div>
+                  <div>差：60%→12分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="20" data-category="analysis" data-candidate="A"></td>
+              <td><input type="number" min="0" max="20" data-category="analysis" data-candidate="B"></td>
+              <td><input type="number" min="0" max="20" data-category="analysis" data-candidate="C"></td>
+              <td><input type="number" min="0" max="20" data-category="analysis" data-candidate="D"></td>
+
+            </tr>
+            <!-- 计划统筹能力 -->
+            <tr>
+              <td class="criteria-cell">
+                计划统筹能力<br>(0-20分)<br>
+                <div class="standard-cell">
+                  <div>分析、安排、统筹<br>侧重考题：二题为主</div>
+                  <div>好：90%→18分</div>
+                  <div>中：70-80%→14-16分</div>
+                  <div>差：60%→12分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="20" data-category="plan" data-candidate="A"></td>
+              <td><input type="number" min="0" max="20" data-category="plan" data-candidate="B"></td>
+              <td><input type="number" min="0" max="20" data-category="plan" data-candidate="C"></td>
+              <td><input type="number" min="0" max="20" data-category="plan" data-candidate="D"></td>
+
+            </tr>
+            <!-- 分析和解决问题能力 -->
+            <tr>
+              <td class="criteria-cell">
+                分析解决问题能力<br>(0-20分)<br>
+                <div class="standard-cell">
+                  <div>分析、应对<br>侧重考题：三题为主</div>
+                  <div>好：90%→18分</div>
+                  <div>中：70-80%→14-16分</div>
+                  <div>差：60%→12分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="20" data-category="solve" data-candidate="A"></td>
+              <td><input type="number" min="0" max="20" data-category="solve" data-candidate="B"></td>
+              <td><input type="number" min="0" max="20" data-category="solve" data-candidate="C"></td>
+              <td><input type="number" min="0" max="20" data-category="solve" data-candidate="D"></td>
+
+            </tr>
+            <!-- 反应能力 -->
+            <tr>
+              <td class="criteria-cell">
+                反应能力(0-15分)<br>
+                <div class="standard-cell">
+                  <div>快速反应、心理素质<br>侧重考题：全部</div>
+                  <div>好：90%→14分</div>
+                  <div>中：70-80%→10-12分</div>
+                  <div>差：60%→9分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="15" data-category="reaction" data-candidate="A"></td>
+              <td><input type="number" min="0" max="15" data-category="reaction" data-candidate="B"></td>
+              <td><input type="number" min="0" max="15" data-category="reaction" data-candidate="C"></td>
+              <td><input type="number" min="0" max="15" data-category="reaction" data-candidate="D"></td>
+
+            </tr>
+            <!-- 语言表达能力 -->
+            <tr>
+              <td class="criteria-cell">
+                语言表达能力<br>(0-15分)<br>
+                <div class="standard-cell">
+                  <div>简洁、逻辑、条理<br>侧重考题：全过程</div>
+                  <div>好：90%→14分</div>
+                  <div>中：70-80%→10-12分</div>
+                  <div>差：60%→9分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="15" data-category="speak" data-candidate="A"></td>
+              <td><input type="number" min="0" max="15" data-category="speak" data-candidate="B"></td>
+              <td><input type="number" min="0" max="15" data-category="speak" data-candidate="C"></td>
+              <td><input type="number" min="0" max="15" data-category="speak" data-candidate="D"></td>
+
+            </tr>
+            <!-- 举止仪表 -->
+            <tr>
+              <td class="criteria-cell">
+                举止仪表(0-10分)<br>
+                <div class="standard-cell">
+                  <div>多余肢体语言等<br>侧重考题：全过程</div>
+                  <div>好：90%→9分</div>
+                  <div>中：70-80%→7-8分</div>
+                  <div>差：60%→6分</div>
+                </div>
+              </td>
+              <td><input type="number" min="0" max="10" data-category="behave" data-candidate="A"></td>
+              <td><input type="number" min="0" max="10" data-category="behave" data-candidate="B"></td>
+              <td><input type="number" min="0" max="10" data-category="behave" data-candidate="C"></td>
+              <td><input type="number" min="0" max="10" data-category="behave" data-candidate="D"></td>
+
+            </tr>
+            <tr>
+              <td class="criteria-cell">
+                总分(0-100分)<br>
+              </td>
+              <td><input type="number" min="0" max="100" data-category="total" data-candidate="A"></td>
+              <td><input type="number" min="0" max="100" data-category="total" data-candidate="B"></td>
+              <td><input type="number" min="0" max="100" data-category="total" data-candidate="C"></td>
+              <td><input type="number" min="0" max="100" data-category="total" data-candidate="D"></td>
+              <td class="standard-cell">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group" style="margin-top: 30px;">
+        <button type="submit">提交全部评分</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // 新增Socket初始化
+    const socket = io();
+    socket.on('connect', () => console.log('已连接到投票服务器'));
+    socket.on('connect_error', (err) => console.error('连接失败:', err.message));
+
+    const categoryWeights = {
+      analysis: 20,
+      plan: 20,
+      solve: 20,
+      reaction: 15,
+      speak: 15,
+      behave: 10
+    };
+
+    function updateTotalScore(e) {
+      const input = e.target;
+      const candidate = input.dataset.candidate;
+      const inputs = document.querySelectorAll(`input[data-candidate="${candidate}"]:not([data-category="total"])`);
+      let total = 0;
+      inputs.forEach(input => {
+        const value = parseInt(input.value) || 0;
+        const max = parseInt(input.max);
+        total += Math.min(Math.max(value, 0), max);
+      });
+      const totalInput = document.querySelector(`input[data-category="total"][data-candidate="${candidate}"]`);
+      totalInput.value = total;
+      totalInput.dispatchEvent(new Event('input'));
+    }
+
+    function updateAllTotalScores() {
+      ['A', 'B', 'C', 'D'].forEach(candidate => {
+        document.querySelectorAll(`input[data-candidate="${candidate}"]:not([data-category="total"])`)
+          .forEach(input => input.dispatchEvent(new Event('input')));
+      });
+    }
+
+    function setupAutoCalculate() {
+      document.querySelectorAll('input[type="number"]:not([data-category="total"])')
+        .forEach(input => input.addEventListener('input', updateTotalScore));
+      updateAllTotalScores();
+    }
+
+    // 初始化自动计算
+    setupAutoCalculate();
+
+
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', function () {
+        const value = parseInt(this.value);
+        const max = parseInt(this.max);
+        if (value > max) this.value = max;
+        else if (value < 0) this.value = 0;
+        this.classList.toggle('invalid', isNaN(value) || value < 0 || value > max);
+      });
+    });
+
+    document.querySelectorAll('[data-category="total"]').forEach(input => {
+      input.readOnly = true;
+      input.style.backgroundColor = '#f5f5f5';
+    });
+
+    document.getElementById('voteForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // 读取当前轮次ID
+      const urlParams = new URLSearchParams(window.location.search);
+      const vid = urlParams.get('vid') || 'unknown';
+
+      // // 检查是否已提交过
+      // if (localStorage.getItem(`submitted_${vid}`)) {
+      //   alert('您已经提交过本轮评分，不能重复提交！');
+      //   return;
+      // }
+
+      // 校验所有非总分输入是否填写完整
+      const inputs = document.querySelectorAll('input[type="number"]:not([data-category="total"])');
+      let allFilled = true;
+      inputs.forEach(input => {
+        if (input.value === '' || isNaN(parseInt(input.value))) {
+          input.classList.add('invalid');
+          allFilled = false;
+        } else {
+          input.classList.remove('invalid');
+        }
+      });
+
+      if (!allFilled) {
+        alert('请填写所有评分项后再提交！');
+        return;
+      }
+
+      // 收集总分
+      const totalScores = {};
+      ['A', 'B', 'C', 'D'].forEach(candidate => {
+        const input = document.querySelector(`input[data-category="total"][data-candidate="${candidate}"]`);
+        totalScores[candidate] = parseInt(input.value) || 0;
+      });
+
+      // 收集维度分
+      const dimensionData = {};
+      ['analysis', 'plan', 'solve', 'reaction', 'speak', 'behave'].forEach(category => {
+        dimensionData[category] = {};
+        ['A', 'B', 'C', 'D'].forEach(candidate => {
+          const input = document.querySelector(
+            `input[data-category="${category}"][data-candidate="${candidate}"]`
+          );
+          dimensionData[category][candidate] = parseInt(input.value) || 0;
+        });
+      });
+
+      socket.emit('vote', {
+        candidates: totalScores,
+        dimensions: dimensionData
+      }, (response) => {
+        if (response === 'OK') {
+          alert('已成功提交');
+          localStorage.setItem(`submitted_${vid}`, 'true');
+          document.querySelectorAll('input').forEach(input => input.disabled = true);
+          const submitBtn = document.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          submitBtn.textContent = '已提交';
+        } else {
+          alert('提交失败，请重试');
+        }
+
+      });
+    });
+
+  </script>
+</body>
+
+</html>
