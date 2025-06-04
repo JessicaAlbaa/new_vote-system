@@ -34,8 +34,15 @@ function getLocalIpAddress() {
 }
 
 function getVoteUrl() {
+  // 使用Render提供的环境变量
+  if (process.env.RENDER_EXTERNAL_URL) {
+    return `${process.env.RENDER_EXTERNAL_URL}/vote.html?vid=${currentVoteId}`;
+  }
+  
+  // 本地开发时使用本地IP
   const ipAddress = getLocalIpAddress();
-  return `http://${ipAddress}:3000/vote.html?vid=${currentVoteId}`;
+  const PORT = process.env.PORT || 3000;
+  return `http://${ipAddress}:${PORT}/vote.html?vid=${currentVoteId}`;
 }
 
 app.get('/qrcode', async (req, res) => {
@@ -247,16 +254,12 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3000, '0.0.0.0', () => {
-  const ip = getLocalIpAddress();
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ================================
 服务已启动：
-电脑端: http://localhost:3000
-手机端: http://${ip}:3000
+访问地址: http://localhost:${PORT}
 ================================
   `);
-  QRCode.toString(getVoteUrl(), { type: 'terminal' }, (err, url) => {
-    if (!err) console.log('\n终端二维码:\n' + url);
-  });
 });
