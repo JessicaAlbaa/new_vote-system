@@ -181,8 +181,14 @@ function processStats() {
         : 0;
     }
 
-    const maxEntry = Object.entries(candidateAverages).reduce((a, b) => (b[1] > a[1] ? b : a));
-    const minEntry = Object.entries(candidateAverages).reduce((a, b) => (b[1] < a[1] ? b : a));
+    // 过滤掉平均值为0（即该候选人在该维度没有参与评分）的候选人
+    const validEntries = Object.entries(candidateAverages).filter(([_, v]) => v > 0);
+
+    let maxEntry = ['无', 0], minEntry = ['无', 0];
+    if (validEntries.length > 0) {
+      maxEntry = validEntries.reduce((a, b) => (b[1] > a[1] ? b : a));
+      minEntry = validEntries.reduce((a, b) => (b[1] < a[1] ? b : a));
+    }
 
     return {
       name: dimension,
@@ -207,8 +213,10 @@ function processStats() {
         if (score === undefined) return;
 
         const current = stats.candidateExtremes[candidate][zhDim];
-        if (score > current.max) current.max = score;
-        if (score < current.min) current.min = score;
+        if (score > 0) {
+          if (score > current.max) current.max = score;
+          if (score < current.min) current.min = score;
+        }
       });
     });
   });
